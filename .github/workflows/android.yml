@@ -59,6 +59,29 @@ jobs:
           mkdir -p dist
           cp upstream/android/app/out/nxnative-android-bananalite.apk "dist/BananaLite-${VERSION}-build-${GITHUB_RUN_NUMBER}-attempt-${GITHUB_RUN_ATTEMPT}.apk"
           echo "LITE_VERSION=$VERSION" >> "$GITHUB_ENV"
+      - name: Sign with persistent release key when configured
+        env:
+          KEYSTORE_B64: ${{ secrets.BANANALITE_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.BANANALITE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.BANANALITE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.BANANALITE_KEY_PASSWORD }}
+        run: |
+          set -eu
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "::warning::No persistent signing key configured; APK may not support in-place updates."
+            exit 0
+          fi
+          umask 077
+          KS="$RUNNER_TEMP/bananalite-release.jks"
+          trap 'rm -f "$KS"' EXIT
+          printf '%s' "$KEYSTORE_B64" | openssl base64 -d -A > "$KS"
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -1)
+          for APK in dist/*.apk; do
+            "$SIGNER" sign --ks "$KS" --ks-key-alias "$KEY_ALIAS" --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD --out "$APK.signed" "$APK"
+            "$SIGNER" verify --print-certs "$APK.signed"
+            mv "$APK.signed" "$APK"
+            rm -f "$APK.signed.idsig"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: BananaLite-${{ env.LITE_VERSION }}-build-${{ github.run_number }}-attempt-${{ github.run_attempt }}
