@@ -183,3 +183,14 @@ replace(p, 'env.add("DM_LSFG=" + (on(c) ? 1 : 0));', 'env.add("DM_LSFG=" + (on(c
 p = java / "GameSettings.java"
 replace(p, 'GameUpscaler.mode(a, id, GameUpscaler.MODE_FSR);', 'GameUpscaler.mode(a, id, k == 0 ? GameUpscaler.MODE_DEFAULT : GameUpscaler.MODE_FSR);')
 print("Applied manual LSFG priority and lightweight upscaling preset.")
+
+# v0.3: expose existing runtime log sharing and cover picker on Home.
+p = java / "MainActivity.java"
+replace(p, 'top.addView(logo);', '''top.addView(logo);
+        TextView liteBrand = Ui.heading(this, "BANANA LITE");
+        liteBrand.setTextColor(0xffffd43b);
+        top.addView(liteBrand);''')
+replace(p, 'help.addView(new Ui.Setting(this, "📨", Tx.s(R.string.common_share_log), v -> shareLog()).value(Tx.s(R.string.settings_the_newest_log)).chevron(this).view);', '''help.addView(new Ui.Setting(this, "📨", "Export diagnostic log", v -> shareLog()).value("Share the latest game runtime log").chevron(this).view);''')
+p = java / "GameSettings.java"
+replace(p, 'GameUpscaler.mode(a, id, GameUpscaler.MODE_FSR);', 'GameUpscaler.mode(a, id, GameUpscaler.MODE_DEFAULT);')
+print("Exposed runtime diagnostics and selected single-pass SGSR for Lite presets.")
