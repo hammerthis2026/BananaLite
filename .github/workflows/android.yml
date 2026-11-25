@@ -52,8 +52,15 @@ jobs:
       - name: Build APK
         working-directory: upstream/android/app
         run: bash ./gradlew -PnxPackStage="$RUNNER_TEMP/banana-pack/stage" apk
+      - name: Name APK for this build
+        run: |
+          VERSION=$(sed -n 's/^nxVersion=//p' upstream/android/app/gradle.properties | tail -1)
+          VERSION=${VERSION:-experimental}
+          mkdir -p dist
+          cp upstream/android/app/out/nxnative-android-bananalite.apk "dist/BananaLite-${VERSION}-build-${GITHUB_RUN_NUMBER}-attempt-${GITHUB_RUN_ATTEMPT}.apk"
+          echo "LITE_VERSION=$VERSION" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
-          name: BananaLite-experimental
-          path: upstream/android/app/out/nxnative-android-bananalite.apk
+          name: BananaLite-${{ env.LITE_VERSION }}-build-${{ github.run_number }}-attempt-${{ github.run_attempt }}
+          path: dist/*.apk
           if-no-files-found: error
