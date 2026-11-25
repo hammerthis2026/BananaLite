@@ -1,0 +1,39 @@
+name: Banana Lite Android
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install Android dependencies
+        run: |
+          brew install ninja
+          sdkmanager "platforms;android-36" "ndk;28.2.13676358" "cmake;3.22.1"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
+      - name: Fetch upstream and apply prototype
+        run: |
+          git clone https://git.eden-emu.dev/moceure/BananaNative upstream
+          git -C upstream checkout ba6094da4407247cba31e546ea7d51a747a11a0a
+          git -C upstream submodule update --init --recursive
+          python3 tools/apply_lite.py upstream
+      - name: Build real native packer
+        run: zsh upstream/android/ondevice/build.sh "$RUNNER_TEMP/banana-pack"
+      - name: Build APK
+        working-directory: upstream/android/app
+        run: bash ./gradlew -PnxPackStage="$RUNNER_TEMP/banana-pack/stage" apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BananaLite-experimental
+          path: upstream/android/app/out/nxnative-android-bananalite.apk
+          if-no-files-found: error
