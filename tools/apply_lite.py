@@ -179,3 +179,14 @@ replace(p, 'top.addView(logo);', '''top.addView(logo);
         top.addView(liteBrand);''')
 replace(p, 'help.addView(new Ui.Setting(this, "📨", Tx.s(R.string.common_share_log), v -> shareLog()).value(Tx.s(R.string.settings_the_newest_log)).chevron(this).view);', '''help.addView(new Ui.Setting(this, "📨", "Export diagnostic log", v -> shareLog()).value("Share the latest game runtime log").chevron(this).view);''')
 print("Exposed runtime diagnostics and selected single-pass SGSR for Lite presets.")
+
+# v0.4 experimental correctness-first pipeline policy.
+# Replace the launcher-emitted asynchronous pipeline setting, not the FPS counter.
+changed = 0
+for source in java.rglob("*.java"):
+    data = source.read_text()
+    if '"DM_VK_PSO_ASYNC=2"' in data:
+        data = data.replace('"DM_VK_PSO_ASYNC=2"', '"DM_VK_PSO_ASYNC=0"')
+        source.write_text(data)
+        changed += 1
+print(f"Correctness-first pipeline policy: {changed} launcher files changed; missing shader modules still require separate repair.")
