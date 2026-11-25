@@ -61,9 +61,9 @@ replace(p, 'if (perf) Ui.add(content, Ui.statusChip(a, chipText(a, id)), 12, Ui.
             lite.addView(Ui.text(a, "BANANA LITE / PERFORMANCE", 15, R.color.bn_text, 700));
             lite.addView(new Ui.Setting(a, "⚡", "Apply Lite preset", v ->
                 new PadFocus.Builder(a).setTitle("Performance preset")
-                .setItems(new String[]{"Ultra Lite · 360p / 30 fps", "Balanced · 540p / 30 fps", "Performance · 720p / 60 fps", "High FPS · 480p / 60 fps", "Native handheld output · 1080p / 60 fps", "Custom · keep current settings"}, (d, k) -> {
+                .setItems(new String[]{"Ultra Lite · 360p / 30 fps", "Balanced · 540p / 30 fps", "Performance · 720p / 60 fps", "Ultra Lite 60 · 360p / 60 fps", "Full HD · 1080p / 60 fps", "Custom · keep current settings"}, (d, k) -> {
                     if (k < 5) {
-                        Prefs.gameWindow(a, id, new String[]{"640x360", "960x540", "1280x720", "848x480", "1920x1080"}[k]);
+                        Prefs.gameWindow(a, id, new String[]{"640x360", "960x540", "1280x720", "640x360", "1920x1080"}[k]);
                         keepAdvanced(a, g);
                         Prefs.fpsCap(a, id, k >= 2 ? 60 : 30);
                         Prefs.classicPasses(a, id, k != 2);
@@ -168,7 +168,7 @@ replace(p, 'note = Tx.s(R.string.game_lossless_dll_picked_by_hand);', '''prefs(c
 replace(p, 'env.add("DM_LSFG=" + (on(c) ? 1 : 0));', 'env.add("DM_LSFG=" + (on(c) && dll != null ? 1 : 0));')
 # Use existing single-pass SGSR on Ultra Lite to limit upscaling cost.
 p = java / "GameSettings.java"
-replace(p, 'GameUpscaler.mode(a, id, GameUpscaler.MODE_FSR);', 'GameUpscaler.mode(a, id, k == 0 ? GameUpscaler.MODE_DEFAULT : GameUpscaler.MODE_FSR);')
+replace(p, 'GameUpscaler.mode(a, id, GameUpscaler.MODE_FSR);', 'GameUpscaler.mode(a, id, (k == 0 || k == 3) ? GameUpscaler.MODE_DEFAULT : GameUpscaler.MODE_FSR);')
 print("Applied manual LSFG priority and lightweight upscaling preset.")
 
 # v0.3: expose existing runtime log sharing and cover picker on Home.
