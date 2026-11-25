@@ -61,11 +61,11 @@ replace(p, 'if (perf) Ui.add(content, Ui.statusChip(a, chipText(a, id)), 12, Ui.
             lite.addView(Ui.text(a, "BANANA LITE / PERFORMANCE", 15, R.color.bn_text, 700));
             lite.addView(new Ui.Setting(a, "⚡", "Apply Lite preset", v ->
                 new PadFocus.Builder(a).setTitle("Performance preset")
-                .setItems(new String[]{"Ultra Lite · 360p / 30 fps", "Balanced · 540p / 30 fps", "Performance · 720p / 60 fps", "Custom · keep current settings"}, (d, k) -> {
-                    if (k < 3) {
-                        Prefs.gameWindow(a, id, new String[]{"640x360", "960x540", "1280x720"}[k]);
+                .setItems(new String[]{"Ultra Lite · 360p / 30 fps", "Balanced · 540p / 30 fps", "Performance · 720p / 60 fps", "High FPS · 480p / 60 fps", "Native handheld output · 1080p / 60 fps", "Custom · keep current settings"}, (d, k) -> {
+                    if (k < 5) {
+                        Prefs.gameWindow(a, id, new String[]{"640x360", "960x540", "1280x720", "848x480", "1920x1080"}[k]);
                         keepAdvanced(a, g);
-                        Prefs.fpsCap(a, id, k == 2 ? 60 : 30);
+                        Prefs.fpsCap(a, id, k >= 2 ? 60 : 30);
                         Prefs.classicPasses(a, id, k != 2);
                         Prefs.fp16(a, id, false);
                         Prefs.ramSaverStrong(a, id, false);
