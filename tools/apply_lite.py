@@ -42,7 +42,8 @@ replace(p, '"960x540", "848x480"},', '"960x540", "848x480", "640x360", "426x240"
 replace(p, 'Tx.s(R.string.game_phone_480p_848x480)},', 'Tx.s(R.string.game_phone_480p_848x480), "Lite 360p (640x360)", "Ultra Lite 240p (426x240)"},')
 replace(p, '"540p", "480p"};', '"540p", "480p", "360p", "240p"};')
 res = root / "android/app/src/main/res"
-replace(res / "values/colors.xml", '#FF1E5B3A', '#FF17171C')
+colors = res / 'values/colors.xml'
+colors.write_text(colors.read_text().replace('#FF1E5B3A', '#FF17171C'))
 icon = """<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
 <path android:fillColor="#FFFFD43B" android:pathData="M25,35 Q34,77 79,43 L83,49 Q72,81 43,78 Q24,73 25,35 Z"/>
 <path android:fillColor="#FFFFFFFF" android:pathData="M57,24 L43,48 L55,48 L49,67 L70,40 L57,40 Z"/>
