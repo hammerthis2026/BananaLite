@@ -13,7 +13,7 @@ def replace(path, old, new):
 
 p = root / "android/app/gradle.properties"
 with p.open("a") as f:
-    f.write("\nnxApp=bananalite\nnxLabel=Banana Lite\nnxVersion=0.2-experimental\nnxVersionCode=2\n")
+    f.write("\nnxApp=bananalite\nnxLabel=Banana Lite\nnxVersion=0.2.0-experimental\nnxVersionCode=2\n")
 
 p = java / "Prefs.java"
 # Use Android's low-RAM flag and physical RAM rather than a specific chipset.
@@ -127,3 +127,17 @@ replace(p, 'private void start(Game g) {', '''private boolean liteBackupBusy;
 
     private void liteStart(Game g) {''')
 print("Applied Lite presets, safe rendering control, optional backups and FG overlay labels.")
+
+# Reuse upstream updater with a fixed Banana Lite release source.
+p = java / "Updater.java"
+data = p.read_text()
+start = data.index("    static List<UpdateCheck.Source> sources(Context c) {")
+end = data.index("\n    }", start) + len("\n    }")
+p.write_text(data[:start] + '''    static List<UpdateCheck.Source> sources(Context c) {
+        return java.util.Collections.singletonList(UpdateCheck.github("hammerthis2026/BananaLite"));
+    }''' + data[end:])
+replace(p, 'return override(c).getOrDefault("version", BuildConfig.VERSION_NAME);', 'return BuildConfig.VERSION_NAME;')
+p = java / "UpdateCheck.java"
+replace(p, 'GITHUB_HOST, "objects.githubusercontent.com");', 'GITHUB_HOST, "objects.githubusercontent.com", "release-assets.githubusercontent.com");')
+replace(res / "values/strings.xml", '<string name="settings_banana_native_version">Banana Native %1$s</string>', '<string name="settings_banana_native_version">Banana Lite %1$s</string>')
+print("Configured Banana Lite in-app release updates.")
