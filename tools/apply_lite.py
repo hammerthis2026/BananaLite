@@ -168,3 +168,18 @@ replace(p, 'Banana Lite 0.2 · ', 'Banana Lite 0.3 · ')
 props = root / "android/app/gradle.properties"
 props.write_text(props.read_text().replace("nxVersion=0.2.0-experimental", "nxVersion=0.3.0-experimental").replace("nxVersionCode=2", "nxVersionCode=3"))
 print("Applied v0.3 experimental clarity and LSFG diagnostics.")
+
+# Prefer an explicitly imported DLL over automatic discovery.
+p = java / "Lsfg.java"
+replace(p, 'File copy = privateCopy(c);', '''File copy = privateCopy(c);
+        if (prefs(c).getBoolean("lite_lsfg_manual", false) && looksLikeDll(copy)) {
+            note = "Using manually imported Lossless.dll";
+            return copy;
+        }''')
+replace(p, 'note = Tx.s(R.string.game_lossless_dll_picked_by_hand);', '''prefs(c).edit().putBoolean("lite_lsfg_manual", true).commit();
+        note = Tx.s(R.string.game_lossless_dll_picked_by_hand);''')
+replace(p, 'env.add("DM_LSFG=" + (on(c) ? 1 : 0));', 'env.add("DM_LSFG=" + (on(c) && dll != null ? 1 : 0));')
+# Use existing single-pass SGSR on Ultra Lite to limit upscaling cost.
+p = java / "GameSettings.java"
+replace(p, 'GameUpscaler.mode(a, id, GameUpscaler.MODE_FSR);', 'GameUpscaler.mode(a, id, k == 0 ? GameUpscaler.MODE_DEFAULT : GameUpscaler.MODE_FSR);')
+print("Applied manual LSFG priority and lightweight upscaling preset.")
