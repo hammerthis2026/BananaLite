@@ -13,7 +13,7 @@ def replace(path, old, new):
 
 p = root / "android/app/gradle.properties"
 with p.open("a") as f:
-    f.write("\nnxApp=bananalite\nnxLabel=Banana Lite\nnxVersion=0.2.0-experimental\nnxVersionCode=2\n")
+    f.write("\nnxApp=bananalite\nnxLabel=Banana Lite\nnxVersion=0.3.0-experimental\nnxVersionCode=3\n")
 
 p = java / "Prefs.java"
 # Use Android's low-RAM flag and physical RAM rather than a specific chipset.
@@ -36,7 +36,7 @@ p = java / "Prefs.java"
 replace(p, 'getBoolean(gameKey("vk_classic_rp", titleId), false)', 'getBoolean(gameKey("vk_classic_rp", titleId), liteLowMemory(c))')
 replace(p, 'getInt("ui_theme", 0)', 'getInt("ui_theme", 2)')
 replace(p, 'getInt("ui_background", 0)', 'getInt("ui_background", 1)')
-replace(p, 'return Signer.buildTag(BuildConfig.NX_PLAY, buildId());', 'return "Banana Lite 0.2 · " + buildId();')
+replace(p, 'return Signer.buildTag(BuildConfig.NX_PLAY, buildId());', 'return "Banana Lite 0.3 · " + buildId();')
 replace(p, 'WINDOW_DEFAULT = "1920x1080"', 'WINDOW_DEFAULT = "848x480"')
 replace(p, '"960x540", "848x480"},', '"960x540", "848x480", "640x360", "426x240"},')
 replace(p, 'Tx.s(R.string.game_phone_480p_848x480)},', 'Tx.s(R.string.game_phone_480p_848x480), "Lite 360p (640x360)", "Ultra Lite 240p (426x240)"},')
@@ -61,9 +61,9 @@ replace(p, 'if (perf) Ui.add(content, Ui.statusChip(a, chipText(a, id)), 12, Ui.
             lite.addView(Ui.text(a, "BANANA LITE / PERFORMANCE", 15, R.color.bn_text, 700));
             lite.addView(new Ui.Setting(a, "⚡", "Apply Lite preset", v ->
                 new PadFocus.Builder(a).setTitle("Performance preset")
-                .setItems(new String[]{"Ultra Lite · 360p / 30 fps", "Balanced · 480p / 30 fps", "Performance · 720p / 60 fps", "Custom · keep current settings"}, (d, k) -> {
+                .setItems(new String[]{"Ultra Lite · 360p / 30 fps", "Balanced · 540p / 30 fps", "Performance · 720p / 60 fps", "Custom · keep current settings"}, (d, k) -> {
                     if (k < 3) {
-                        Prefs.gameWindow(a, id, new String[]{"640x360", "848x480", "1280x720"}[k]);
+                        Prefs.gameWindow(a, id, new String[]{"640x360", "960x540", "1280x720"}[k]);
                         keepAdvanced(a, g);
                         Prefs.fpsCap(a, id, k == 2 ? 60 : 30);
                         Prefs.classicPasses(a, id, k != 2);
@@ -142,3 +142,12 @@ p = java / "UpdateCheck.java"
 replace(p, 'GITHUB_HOST, "objects.githubusercontent.com");', 'GITHUB_HOST, "objects.githubusercontent.com", "release-assets.githubusercontent.com");')
 replace(res / "values/strings.xml", '<string name="settings_banana_native_version">Banana Native %1$s</string>', '<string name="settings_banana_native_version">Banana Lite %1$s</string>')
 print("Configured Banana Lite in-app release updates.")
+
+# v0.3: explicit LSFG diagnostics without pretending a detected DLL is usable.
+p = java / "Lsfg.java"
+replace(p, 'st.setText(status + "\\nA detected DLL is not proof of active FG. Check the in-game overlay for FG active and output FPS.");', '''File detected = privateCopy(c);
+        st.setText(status + "\\nNative LSFG build: " + BuildConfig.NX_LSFG
+            + "\\nPrivate DLL: " + (looksLikeDll(detected) ? detected.length() + " bytes" : "not detected")
+            + "\\nRequested: " + (on(c) ? "on" : "off") + ", " + multiplier(c) + "x, flow " + flow(c) + "%"
+            + "\\nDisplay limit: " + maxHz(c) + " Hz"
+            + "\\nRestart after replacing the DLL. A detected DLL does not prove initialization succeeded.");''')
