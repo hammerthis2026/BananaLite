@@ -18,6 +18,8 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Set up Android SDK command-line tools
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
       - name: Install Android dependencies
         run: |
           command -v ninja || brew install ninja
