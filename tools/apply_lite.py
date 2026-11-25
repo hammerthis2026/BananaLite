@@ -152,22 +152,9 @@ replace(p, 'st.setText(status + "\\nA detected DLL is not proof of active FG. Ch
             + "\\nDisplay limit: " + maxHz(c) + " Hz"
             + "\\nRestart after replacing the DLL. A detected DLL does not prove initialization succeeded.");''')
 
-# v0.3 compatibility and clarity pass
+# v0.3 compatibility: preset labels and resolution already updated above.
 p = java / "GameSettings.java"
-replace(p, '"Balanced · 480p / 30 fps"', '"Balanced · 540p / 30 fps"')
-replace(p, 'new String[]{"640x360", "848x480", "1280x720"}[k]', 'new String[]{"640x360", "960x540", "1280x720"}[k]')
 replace(p, 'Prefs.classicPasses(a, id, k != 2);', 'Prefs.classicPasses(a, id, true);\n                        Prefs.instancedDraws(a, id, false);\n                        GameUpscaler.mode(a, id, GameUpscaler.MODE_FSR);\n                        GameUpscaler.sharp(a, id, 0.25f);')
-p = java / "Lsfg.java"
-replace(p, 'TextView st = new TextView(c);', '''TextView diagnostic = new TextView(c);
-        File detected = find(c);
-        diagnostic.setText("LSFG build support: yes | DLL: " + (detected == null ? "not detected" : detected.length() + " bytes detected") + ". Restart the game after importing a DLL. Detection does not guarantee shader compatibility.");
-        box.addView(diagnostic);
-        TextView st = new TextView(c);''')
-p = java / "Prefs.java"
-replace(p, 'Banana Lite 0.2 · ', 'Banana Lite 0.3 · ')
-props = root / "android/app/gradle.properties"
-props.write_text(props.read_text().replace("nxVersion=0.2.0-experimental", "nxVersion=0.3.0-experimental").replace("nxVersionCode=2", "nxVersionCode=3"))
-print("Applied v0.3 experimental clarity and LSFG diagnostics.")
 
 # Prefer an explicitly imported DLL over automatic discovery.
 p = java / "Lsfg.java"
@@ -191,6 +178,4 @@ replace(p, 'top.addView(logo);', '''top.addView(logo);
         liteBrand.setTextColor(0xffffd43b);
         top.addView(liteBrand);''')
 replace(p, 'help.addView(new Ui.Setting(this, "📨", Tx.s(R.string.common_share_log), v -> shareLog()).value(Tx.s(R.string.settings_the_newest_log)).chevron(this).view);', '''help.addView(new Ui.Setting(this, "📨", "Export diagnostic log", v -> shareLog()).value("Share the latest game runtime log").chevron(this).view);''')
-p = java / "GameSettings.java"
-replace(p, 'GameUpscaler.mode(a, id, GameUpscaler.MODE_FSR);', 'GameUpscaler.mode(a, id, GameUpscaler.MODE_DEFAULT);')
 print("Exposed runtime diagnostics and selected single-pass SGSR for Lite presets.")
