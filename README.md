@@ -60,3 +60,14 @@ Snapdragon 732G, Adreno 618, 6 GB RAM, Turnip. This is a test configuration, not
 ## Upstream and licensing
 
 Based on Banana Native. The build workflow fetches a pinned upstream revision and applies Banana Lite patches. Original upstream licensing and redistribution obligations apply. Do not upload proprietary game files, keys or DLLs.
+
+
+## v0.4 development targets
+
+- Distinct library, settings and game-details UI; automatic embedded game artwork with fallback placeholder.
+- Explicit play, game settings and update actions; hardware-aware presets.
+- Battery-independent app performance policy, respecting Android thermal and power limits.
+- In-app release updates with signing compatibility checks.
+- Investigate black materials and DK textures; validate real LSFG output on supported devices.
+
+These are planned changes, not implemented features. v0.3 user testing reported approximately 20 FPS on Snapdragon 732G at 12% battery.
