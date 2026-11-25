@@ -50,3 +50,80 @@ icon = """<vector xmlns:android="http://schemas.android.com/apk/res/android" and
 (res / "drawable/ic_launcher_foreground.xml").write_text(icon)
 (res / "drawable/ic_launcher_monochrome.xml").write_text(icon)
 print("v0.2 experimental compatibility and branding changes applied.")
+
+# Add a dedicated per-game Lite control card.
+p = java / "GameSettings.java"
+replace(p, 'if (perf) Ui.add(content, Ui.statusChip(a, chipText(a, id)), 12, Ui.wrap());', '''if (perf) {
+            Ui.add(content, Ui.statusChip(a, chipText(a, id)), 12, Ui.wrap());
+            LinearLayout lite = Ui.add(content, Ui.card(a), 12);
+            lite.setPadding(Ui.dp(a, 14), Ui.dp(a, 12), Ui.dp(a, 14), Ui.dp(a, 12));
+            lite.addView(Ui.text(a, "BANANA LITE / PERFORMANCE", 15, R.color.bn_text, 700));
+            lite.addView(new Ui.Setting(a, "⚡", "Apply Lite preset", v ->
+                new PadFocus.Builder(a).setTitle("Performance preset")
+                .setItems(new String[]{"Ultra Lite · 360p / 30 fps", "Balanced · 480p / 30 fps", "Performance · 720p / 60 fps", "Custom · keep current settings"}, (d, k) -> {
+                    if (k < 3) {
+                        Prefs.gameWindow(a, id, new String[]{"640x360", "848x480", "1280x720"}[k]);
+                        keepAdvanced(a, g);
+                        Prefs.fpsCap(a, id, k == 2 ? 60 : 30);
+                        Prefs.classicPasses(a, id, k != 2);
+                        Prefs.fp16(a, id, false);
+                        Prefs.ramSaverStrong(a, id, false);
+                        Prefs.ramSaver(a, id, false);
+                        Prefs.customPicked(a, id, true);
+                    }
+                    again.run();
+                }).setNegativeButton(android.R.string.cancel, null).show())
+                .value("Changes resolution, frame cap and rendering settings").chevron(a).view);
+            lite.addView(new Ui.Setting(a, "🛠", "Safe rendering recovery", v -> {
+                Prefs.classicPasses(a, id, true);
+                Prefs.fp16(a, id, false);
+                Prefs.instancedDraws(a, id, false);
+                Prefs.ramSaverStrong(a, id, false);
+                Prefs.ramSaver(a, id, false);
+                again.run();
+            }).value("Experimental fallback for missing geometry; restart game").chevron(a).view);
+            lite.addView(new Ui.Setting(a, "💾", "Auto backup before play", null)
+                .value("At most once daily; uses existing verified save backup")
+                .toggle(a, Prefs.of(a).getBoolean("lite_auto_backup", false), (b, x) ->
+                    Prefs.of(a).edit().putBoolean("lite_auto_backup", x).commit()).view);
+        }''')
+p = java / "Overlay.java"
+replace(p, '%.0f→%.0f fps', 'Native %.0f | Output %.0f fps')
+replace(p, 'line(s, "no LSFG")', 'line(s, "FG unavailable")')
+replace(p, 'line(s, "LSFG")', 'line(s, "FG active")')
+p = java / "Lsfg.java"
+replace(p, 'st.setText(status);', 'st.setText(status + "\\nA detected DLL is not proof of active FG. Check the in-game overlay for FG active and output FPS.");')
+# Optional daily backup on a background thread before game launch.
+p = java / "MainActivity.java"
+replace(p, 'private void start(Game g) {', '''private boolean liteBackupBusy;
+    private void start(Game g) {
+        if (liteBackupBusy) return;
+        String key = "lite_backup_day@" + g.titleId;
+        long day = System.currentTimeMillis() / 86400000L;
+        File save = Folders.save(this, g);
+        if (!Prefs.of(this).getBoolean("lite_auto_backup", false) || Prefs.of(this).getLong(key, -1) == day || save == null) {
+            liteStart(g); return;
+        }
+        liteBackupBusy = true;
+        new Thread(() -> {
+            String error = null;
+            try {
+                if (SaveStore.hasFiles(save) || SaveStore.hasFiles(new File(save.getPath() + "_device"))) {
+                    SaveStore.backup(save, SaveUi.target(this, g), SaveUi.stamp() + "-auto");
+                    Prefs.of(this).edit().putLong(key, day).commit();
+                }
+            } catch (Exception e) { error = e.toString(); }
+            final String failure = error;
+            runOnUiThread(() -> {
+                liteBackupBusy = false;
+                if (isFinishing() || isDestroyed()) return;
+                if (failure == null) liteStart(g);
+                else new PadFocus.Builder(this).setTitle("Auto backup failed").setMessage(failure)
+                    .setPositiveButton("Play without backup", (d, w) -> liteStart(g))
+                    .setNegativeButton(android.R.string.cancel, null).show();
+            });
+        }).start();
+    }
+
+    private void liteStart(Game g) {''')
+print("Applied Lite presets, safe rendering control, optional backups and FG overlay labels.")
