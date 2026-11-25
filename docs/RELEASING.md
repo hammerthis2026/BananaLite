@@ -7,3 +7,7 @@ Verify the final APK with Android SDK apksigner verify --print-certs. Compare th
 Publish the verified signed APK on the repository's GitHub Releases page with a unique version tag and release notes. Test the in-app updater from the previous version before announcing availability. Preserve upstream licenses and source obligations. Do not publish proprietary game data or DLLs.
 
 Never publish an untested build as a stable release.
+
+## v0.4 automatic update milestone
+
+Trigger CI automatically on versioned release tags; publish only successfully built, verified APKs to GitHub Releases. Configure a persistent private signing key before enabling publishing. Expose Check for updates and Update now in the app using the existing release updater. Never embed GitHub credentials in the APK. Android installation confirmation remains required. Test an upgrade preserving saves before enabling automatic releases.
