@@ -3,13 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       runner:
-        description: macOS build runner
+        description: Build runner
         type: choice
-        default: macos-15
+        default: ubuntu-24.04
         options:
+          - ubuntu-24.04
           - macos-15
           - macos-26
-          - macos-14
 permissions:
   contents: read
 jobs:
@@ -31,7 +31,12 @@ jobs:
           packages: 'platform-tools'
       - name: Install Android dependencies
         run: |
-          command -v ninja || brew install ninja
+          if [ "$(uname -s)" = Linux ]; then
+            sudo apt-get update
+            sudo apt-get install -y zsh ninja-build clang lld libicu-dev zlib1g-dev libssl-dev
+          else
+            command -v ninja || brew install ninja
+          fi
           command -v sdkmanager
           sdkmanager --version
           sdkmanager "platforms;android-36" "ndk;28.2.13676358" "cmake;3.22.1"
